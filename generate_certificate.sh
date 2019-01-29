@@ -4,9 +4,9 @@ set -e
 
 usage() {
   cat <<EOF
-Generate certificate suitable for use with New Relic's k8s metadata injeciton mutating admission webhook pod.
+Generate certificate suitable for use with any Kubernetes Mutating Webhook.
 This script uses k8s' CertificateSigningRequest API to a generate a
-certificate signed by k8s CA suitable for use New Relic's k8s metadata injeciton mutating admission webhook pod.
+certificate signed by k8s CA suitable for use with any Kubernetes Mutating Webhook service pod.
 This requires permissions to create and approve CSR. See
 https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster for
 detailed explantion and additional instructions.
@@ -14,6 +14,7 @@ The server key/cert k8s CA cert are stored in a k8s secret.
 usage: ${0} [OPTIONS]
 The following flags are required.
     --service          Service name of webhook.
+    --webhook          Webhook config name.
     --namespace        Namespace where webhook service and secret reside.
     --secret           Secret name for CA certificate and server certificate/key pair.
 EOF
@@ -23,15 +24,19 @@ EOF
 while [[ $# -gt 0 ]]; do
   case ${1} in
       --service)
-          service="newrelic-metadata-injection-svc"
+          service="$2"
+          shift
+          ;;
+      --webhook)
+          webhook="$2"
           shift
           ;;
       --secret)
-          secret="newrelic-metadata-injection-secret"
+          secret="$2"
           shift
           ;;
       --namespace)
-          namespace="default"
+          namespace="$2"
           shift
           ;;
       *)
@@ -41,9 +46,10 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-[[ -z ${service} ]] && service=newrelic-metadata-injection-svc
-[[ -z ${secret} ]] && secret=newrelic-metadata-injection-secret
-[[ -z ${namespace} ]] && namespace=default
+[[ -z ${service} ]] && echo "ERROR: --service flag is required" && exit 1
+[[ -z ${webhook} ]] && echo "ERROR: --webhook flag is required" && exit 1
+[[ -z ${secret} ]] && echo "ERROR: --secret flag is required" && exit 1
+[[ -z ${namespace} ]] && echo "ERROR: --namespace flag is required" && exit 1
 
 if [[ ! -x "$(command -v openssl)" ]]; then
   echo "openssl not found"
@@ -129,4 +135,4 @@ kubectl create secret tls ${secret} \
 
 caBundle=$(kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 | tr -d '\n')
 
-kubectl patch mutatingwebhookconfiguration newrelic-metadata-injection-cfg --type='json' -p "[{'op': 'replace', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"
+kubectl patch mutatingwebhookconfiguration ${webhook} --type='json' -p "[{'op': 'replace', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"
