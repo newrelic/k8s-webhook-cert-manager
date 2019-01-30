@@ -101,6 +101,7 @@ spec:
   - server auth
 EOF
 
+set +e
 # verify CSR has been created
 while true; do
   kubectl get csr ${csrName}
@@ -108,9 +109,12 @@ while true; do
       break
   fi
 done
+set -e
 
 # approve and fetch the signed certificate
 kubectl certificate approve ${csrName}
+
+set +e
 # verify certificate has been signed
 for x in $(seq 10); do
   serverCert=$(kubectl get csr ${csrName} -o jsonpath='{.status.certificate}')
@@ -119,6 +123,8 @@ for x in $(seq 10); do
   fi
   sleep 5
 done
+
+set -e
 if [[ ${serverCert} == '' ]]; then
   echo "ERROR: After approving csr ${csrName}, the signed certificate did not appear on the resource. Giving up after 10 attempts." >&2
   exit 1
@@ -135,4 +141,16 @@ kubectl create secret tls ${secret} \
 
 caBundle=$(kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 | tr -d '\n')
 
-kubectl patch mutatingwebhookconfiguration ${webhook} --type='json' -p "[{'op': 'replace', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"
+set +e
+# patch the webhook adding the caBundle.
+# as the webhook is not created yet (the process should be done manually right after this job is created),
+# the job will not end until the webhook is patched.
+while true; do
+  echo "INFO: Trying to patch webhook adding the caBundle."
+  kubectl patch mutatingwebhookconfiguration ${webhook} --type='json' -p "[{'op': 'replace', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"
+  if [[ "$?" -eq 0 ]]; then
+      break
+  fi
+  echo "INFO: webhook not patched. Retrying in 5s..."
+  sleep 5
+done
