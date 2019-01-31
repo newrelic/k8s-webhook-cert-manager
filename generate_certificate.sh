@@ -60,7 +60,7 @@ csrName=${service}.${namespace}
 tmpdir=$(mktemp -d)
 echo "creating certs in tmpdir ${tmpdir} "
 
-cat <<EOF >> ${tmpdir}/csr.conf
+cat <<EOF >> "${tmpdir}/csr.conf"
 [req]
 req_extensions = v3_req
 distinguished_name = req_distinguished_name
@@ -76,13 +76,13 @@ DNS.2 = ${service}.${namespace}
 DNS.3 = ${service}.${namespace}.svc
 EOF
 
-openssl genrsa -out ${tmpdir}/server-key.pem 2048
-openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${service}.${namespace}.svc" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+openssl genrsa -out "${tmpdir}/server-key.pem 2048"
+openssl req -new -key "${tmpdir}/server-key.pem" -subj "/CN=${service}.${namespace}.svc" -out "${tmpdir}/server.csr" -config "${tmpdir}/csr.conf"
 
 # clean-up any previously created CSR for our service. Ignore errors if not present.
-if kubectl get csr ${csrName}; then
+if kubectl get csr "${csrName}"; then
     echo "WARN: CSR already present. Deleting it and creating a new one..."
-    kubectl delete csr ${csrName}
+    kubectl delete csr "${csrName}"
 fi
 
 # create server cert/key CSR and send it to k8s api
@@ -94,7 +94,7 @@ metadata:
 spec:
   groups:
   - system:authenticated
-  request: $(cat ${tmpdir}/server.csr | base64 | tr -d '\n')
+  request: $(base64 < "${tmpdir}/server.csr" | tr -d '\n')
   usages:
   - digital signature
   - key encipherment
@@ -104,20 +104,19 @@ EOF
 set +e
 # verify CSR has been created
 while true; do
-  kubectl get csr ${csrName}
-  if [[ "$?" -eq 0 ]]; then
+  if kubectl get csr "${csrName}"; then
       break
   fi
 done
 set -e
 
 # approve and fetch the signed certificate
-kubectl certificate approve ${csrName}
+kubectl certificate approve "${csrName}"
 
 set +e
 # verify certificate has been signed
-for x in $(seq 10); do
-  serverCert=$(kubectl get csr ${csrName} -o jsonpath='{.status.certificate}')
+for (( i=0; i<=5; i++ )); do
+  serverCert=$(kubectl get csr "${csrName}" -o jsonpath='{.status.certificate}')
   if [[ ${serverCert} != '' ]]; then
       break
   fi
@@ -130,14 +129,14 @@ if [[ ${serverCert} == '' ]]; then
   exit 1
 fi
 
-echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
+echo "${serverCert}" | openssl base64 -d -A -out "${tmpdir}/server-cert.pem"
 
 # create the secret with CA cert and server cert/key
-kubectl create secret tls ${secret} \
-      --key=${tmpdir}/server-key.pem \
-      --cert=${tmpdir}/server-cert.pem \
+kubectl create secret tls "${secret}" \
+      --key="${tmpdir}/server-key.pem" \
+      --cert="${tmpdir}/server-cert.pem" \
       --dry-run -o yaml |
-  kubectl -n ${namespace} apply -f -
+  kubectl -n "${namespace}" apply -f -
 
 caBundle=$(kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 | tr -d '\n')
 
@@ -147,8 +146,7 @@ set +e
 # the job will not end until the webhook is patched.
 while true; do
   echo "INFO: Trying to patch webhook adding the caBundle."
-  kubectl patch mutatingwebhookconfiguration ${webhook} --type='json' -p "[{'op': 'replace', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"
-  if [[ "$?" -eq 0 ]]; then
+  if kubectl patch mutatingwebhookconfiguration "${webhook}" --type='json' -p "[{'op': 'replace', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
       break
   fi
   echo "INFO: webhook not patched. Retrying in 5s..."
