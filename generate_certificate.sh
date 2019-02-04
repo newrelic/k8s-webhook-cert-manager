@@ -21,7 +21,7 @@ EOF
   exit 1
 }
 
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
   case ${1} in
       --service)
           service="$2"
@@ -46,12 +46,12 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-[[ -z ${service} ]] && echo "ERROR: --service flag is required" && exit 1
-[[ -z ${webhook} ]] && echo "ERROR: --webhook flag is required" && exit 1
-[[ -z ${secret} ]] && echo "ERROR: --secret flag is required" && exit 1
-[[ -z ${namespace} ]] && echo "ERROR: --namespace flag is required" && exit 1
+[ -z "${service}" ] && echo "ERROR: --service flag is required" && exit 1
+[ -z "${webhook}" ] && echo "ERROR: --webhook flag is required" && exit 1
+[ -z "${secret}" ] && echo "ERROR: --secret flag is required" && exit 1
+[ -z "${namespace}" ] && echo "ERROR: --namespace flag is required" && exit 1
 
-if [[ ! -x "$(command -v openssl)" ]]; then
+if [ ! -x "$(command -v openssl)" ]; then
   echo "openssl not found"
   exit 1
 fi
@@ -120,7 +120,7 @@ i=1
 while [ "$i" -ne 5 ]
 do
   serverCert=$(kubectl get csr "${csrName}" -o jsonpath='{.status.certificate}')
-  if [[ ${serverCert} != '' ]]; then
+  if [ "${serverCert}" != '' ]; then
       break
   fi
   sleep 5
@@ -128,7 +128,7 @@ do
 done
 
 set -e
-if [[ ${serverCert} == '' ]]; then
+if [ "${serverCert}" = '' ]; then
   echo "ERROR: After approving csr ${csrName}, the signed certificate did not appear on the resource. Giving up after 10 attempts." >&2
   exit 1
 fi
