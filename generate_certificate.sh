@@ -79,11 +79,12 @@ EOF
 openssl genrsa -out "${tmpdir}/server-key.pem" 2048
 openssl req -new -key "${tmpdir}/server-key.pem" -subj "/CN=${service}.${namespace}.svc" -out "${tmpdir}/server.csr" -config "${tmpdir}/csr.conf"
 
+set +e
 # clean-up any previously created CSR for our service. Ignore errors if not present.
-if kubectl get csr "${csrName}"; then
-    echo "WARN: CSR already present. Deleting it and creating a new one..."
-    kubectl delete csr "${csrName}"
+if kubectl delete csr "${csrName}"; then 
+    echo "WARN: Previous CSR was found and removed."
 fi
+set -e
 
 # create server cert/key CSR and send it to k8s api
 cat <<EOF | kubectl create -f -
