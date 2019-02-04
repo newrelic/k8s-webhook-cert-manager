@@ -1,0 +1,7 @@
+jobs:
+  include:
+    - stage: test
+      name: "Lint"
+      script: make lint
+    - stage: build
+      script: make build-container
