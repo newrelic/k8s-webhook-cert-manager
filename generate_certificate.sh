@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 set -e
 
@@ -116,12 +116,15 @@ kubectl certificate approve "${csrName}"
 
 set +e
 # verify certificate has been signed
-for (( i=0; i<=5; i++ )); do
+i=1
+while [ "$i" -ne 5 ]
+do
   serverCert=$(kubectl get csr "${csrName}" -o jsonpath='{.status.certificate}')
   if [[ ${serverCert} != '' ]]; then
       break
   fi
   sleep 5
+  i=$((i + 1))
 done
 
 set -e
