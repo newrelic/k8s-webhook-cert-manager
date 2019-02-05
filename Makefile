@@ -13,7 +13,7 @@ build-container:
 
 .PHONY: check-shellcheck
 check-shellcheck:
-	@type shellcheck >/dev/null 2>&1 || echo "You don't have shellcheck. Please install it: https://github.com/koalaman/shellcheck#installing" && exit 1
+	@type shellcheck >/dev/null 2>&1 || (echo "You don't have shellcheck. Please install it: https://github.com/koalaman/shellcheck#installing" && exit 1)
 
 .PHONY: lint
 lint: check-shellcheck
