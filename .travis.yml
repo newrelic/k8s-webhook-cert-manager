@@ -1,3 +1,21 @@
+sudo: required
+dist: xenial
+services:
+  - docker
+
+env:
+  global:
+    - GO111MODULE=on
+    - E2E_SETUP_MINIKUBE=yes
+    - E2E_SETUP_KUBECTL=yes
+    - E2E_START_MINIKUBE=yes
+    - E2E_MINIKUBE_DRIVER=none
+    - E2E_SUDO=sudo
+
+e2e-stage: &e2e-stage
+  stage: "E2E Tests"
+  script: make e2e-test
+
 jobs:
   include:
     - stage: test
@@ -5,3 +23,18 @@ jobs:
       script: make lint
     - stage: build
       script: make build-container
+    - <<: *e2e-stage
+      env:
+        - E2E_KUBERNETES_VERSION=v1.9.0
+    - <<: *e2e-stage
+      env:
+        - E2E_KUBERNETES_VERSION=v1.10.0
+    - <<: *e2e-stage
+      env:
+        - E2E_KUBERNETES_VERSION=v1.12.0
+    - <<: *e2e-stage
+      env:
+        - E2E_KUBERNETES_VERSION=v1.13.2
+
+notifications:
+  email: false
