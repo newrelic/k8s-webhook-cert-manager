@@ -1,4 +1,4 @@
-# Kubernetes Webhook Certificates Manager
+# Kubernetes Webhook Certificate Manager
 
 Script to generate a certificate suitable for use with any Kubernetes Mutating
 Webhook. 
