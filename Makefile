@@ -19,3 +19,8 @@ check-shellcheck:
 lint: check-shellcheck
 	@echo "[lint] Validating code using shellcheck"
 	@shellcheck generate_certificate.sh
+
+.PHONY: e2e-test
+e2e-test:
+	@echo "[test] Running e2e tests"
+	./e2e-tests/tests.sh
