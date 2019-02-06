@@ -50,16 +50,16 @@ wait_for_pod() {
         pod_status="$(kubectl get pod "$1" -o jsonpath='{.status.phase}')"
         if [ "$pod_status" = "$desired_status" ]; then
             is_pod_in_desired_status=true
-            printf "pod %s is $desired_status\n" "$1"
+            printf "pod %s is %s\n" "$1" "$desired_status"
             break
         fi
 
-        printf "Waiting for pod %s to be $desired_status\n" "$1"
+        printf "Waiting for pod %s to be %s\n" "$1" "$desired_status"
         sleep 3
         i=$((i + 1))
     done
     if [ $is_pod_in_desired_status = "false" ]; then
-        printf "pod %s does not transition to $desired_status within 1 minute 30 seconds\n" "$1"
+        printf "pod %s does not transition to %s within 1 minute 30 seconds\n" "$1" "$desired_status"
         kubectl get pods
         kubectl describe pod "$1"
         exit 1
