@@ -36,5 +36,10 @@ jobs:
       env:
         - E2E_KUBERNETES_VERSION=v1.13.2
 
+# safelist
+branches:
+  only:
+  - master
+
 notifications:
   email: false
