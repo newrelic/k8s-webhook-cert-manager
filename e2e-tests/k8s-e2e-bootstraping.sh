@@ -42,7 +42,7 @@ get_pod_name_by_label() {
 
 wait_for_pod() {
     set +e
-    desired_status=${1:-'Running'}
+    desired_status=${2:-'Running'}
     is_pod_in_desired_status=false
     i=1
     while [ "$i" -ne 30 ]
