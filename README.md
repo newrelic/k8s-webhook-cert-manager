@@ -1,5 +1,7 @@
 # Kubernetes Webhook Certificate Manager
 
+[![Build Status](https://travis-ci.com/newrelic/k8s-webhook-cert-manager.svg?branch=master)](https://travis-ci.com/newrelic/k8s-webhook-cert-manager)
+
 Script to generate a certificate suitable for use with any Kubernetes Mutating
 Webhook. 
 
