@@ -32,7 +32,7 @@ if [ "$job_pod_name" = '' ]; then
     kubectl describe job $JOB_NAME
     exit 1
 fi
-wait_for_pod "$job_pod_name"
+wait_for_pod "$job_pod_name" "Succeeded"
 
 printf 'secret:\n'
 kubectl describe secret $SECRET_NAME
