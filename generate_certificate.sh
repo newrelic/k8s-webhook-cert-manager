@@ -150,7 +150,7 @@ set +e
 # the job will not end until the webhook is patched.
 while true; do
   echo "INFO: Trying to patch webhook adding the caBundle."
-  if kubectl patch mutatingwebhookconfiguration "${webhook}" --type='json' -p "[{'op': 'replace', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
+  if kubectl patch mutatingwebhookconfiguration "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
       break
   fi
   echo "INFO: webhook not patched. Retrying in 5s..."
