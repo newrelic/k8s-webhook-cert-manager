@@ -145,8 +145,9 @@ kubectl create secret tls "${secret}" \
 caBundle=$(kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 | tr -d '\n')
 
 set +e
-# patch the webhook adding the caBundle.
-# as the webhook is not created yet (the process should be done manually right after this job is created),
+# Patch the webhook adding the caBundle. It uses an `add` operation to avoid errors in OpenShift because it doesn't set
+# a default value of empty string like Kubernetes. Instead, it doesn't create the caBundle key.
+# As the webhook is not created yet (the process should be done manually right after this job is created),
 # the job will not end until the webhook is patched.
 while true; do
   echo "INFO: Trying to patch webhook adding the caBundle."
