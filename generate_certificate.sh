@@ -142,7 +142,7 @@ kubectl create secret tls "${secret}" \
       --dry-run -o yaml |
   kubectl -n "${namespace}" apply -f -
 
-caBundle=$(kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 | tr -d '\n')
+caBundle=$(kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}')
 
 set +e
 # Patch the webhook adding the caBundle. It uses an `add` operation to avoid errors in OpenShift because it doesn't set
