@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/newrelic/k8s-webhook-cert-manager.svg?branch=master)](https://travis-ci.com/newrelic/k8s-webhook-cert-manager)
 
 Script to generate a certificate suitable for use with any Kubernetes Mutating
-Webhook. 
+or Validating Webhook.
 
 To be able to execute the script in a Kubernetes cluster, it's released as a
 docker image and can be executed, for instance, as a Kubernetes Job. 
