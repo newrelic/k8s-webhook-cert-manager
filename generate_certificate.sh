@@ -17,6 +17,9 @@ The following flags are required.
     --webhook          Webhook config name.
     --namespace        Namespace where webhook service and secret reside.
     --secret           Secret name for CA certificate and server certificate/key pair.
+The following flags are optional.
+    --webhook-kind     Webhook kind, either MutatingWebhookConfiguration or
+                       ValidatingWebhookConfiguration (defaults to MutatingWebhookConfiguration)
 EOF
   exit 1
 }
@@ -37,6 +40,10 @@ while [ $# -gt 0 ]; do
           ;;
       --namespace)
           namespace="$2"
+          shift
+          ;;
+      --webhook-kind)
+          kind="$2"
           shift
           ;;
       *)
@@ -151,7 +158,7 @@ set +e
 # the job will not end until the webhook is patched.
 while true; do
   echo "INFO: Trying to patch webhook adding the caBundle."
-  if kubectl patch mutatingwebhookconfiguration "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
+  if kubectl patch "${kind:-mutatingwebhookconfiguration}" "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
       break
   fi
   echo "INFO: webhook not patched. Retrying in 5s..."
