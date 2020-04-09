@@ -5,10 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 1.2.1
-- Revert to using the full service name for the CN. There is an open issue in 
-  EKS in which the SAN is not added to the signed certificates, making the 
+- Revert to using the full service name for the CN. There is an open issue in
+  EKS in which the SAN is not added to the signed certificates, making the
   TLS requests from the apiserver to the webhook fail.
   https://github.com/awslabs/amazon-eks-ami/issues/341
+- Validate that the length of the string "${service}.${namespace}.svc", which
+  is used for the CN, is not greater than 64 characters as specified in the
+  x509 spec.
+- Use ca bundle to patch the webhook from the service account secret instead
+  of fetching via kubectl.
+- Set the number of retries for retrieving the issued certificate to 10 like
+  the error message.
+- Add the `--webhook-kind` option to specified between
+  MutatingWebhookConfiguration or ValidatingWebhookConfiguration. Defaults to
+  MutatingWebhookConfiguration
 
 ## 1.2.0
 
