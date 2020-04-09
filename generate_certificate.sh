@@ -136,7 +136,7 @@ kubectl certificate approve "${csrName}"
 set +e
 # verify certificate has been signed
 i=1
-while [ "$i" -ne 5 ]
+while [ "$i" -ne 10 ]
 do
   serverCert=$(kubectl get csr "${csrName}" -o jsonpath='{.status.certificate}')
   if [ "${serverCert}" != '' ]; then
