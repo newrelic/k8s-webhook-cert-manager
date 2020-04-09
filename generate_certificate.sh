@@ -58,8 +58,20 @@ done
 [ -z "${secret}" ] && echo "ERROR: --secret flag is required" && exit 1
 [ -z "${namespace}" ] && echo "ERROR: --namespace flag is required" && exit 1
 
+fullServiceDomain="${service}.${namespace}.svc"
+
+# THE CN has a limit of 64 characters. We could remove the namespace and svc
+# and rely on the Subject Alternative Name (SAN), but there is a bug in EKS
+# that discards the SAN when signing the certificates.
+#
+# https://github.com/awslabs/amazon-eks-ami/issues/341
+if [ ${#fullServiceDomain} -gt 64 ] ; then
+  echo "ERROR: common name exceeds the 64 character limit: ${fullServiceDomain}"
+  exit 1
+fi
+
 if [ ! -x "$(command -v openssl)" ]; then
-  echo "openssl not found"
+  echo "ERROR: openssl not found"
   exit 1
 fi
 
@@ -80,15 +92,15 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = ${service}
 DNS.2 = ${service}.${namespace}
-DNS.3 = ${service}.${namespace}.svc
+DNS.3 = ${fullServiceDomain}
 EOF
 
 openssl genrsa -out "${tmpdir}/server-key.pem" 2048
-openssl req -new -key "${tmpdir}/server-key.pem" -subj "/CN=${service}" -out "${tmpdir}/server.csr" -config "${tmpdir}/csr.conf"
+openssl req -new -key "${tmpdir}/server-key.pem" -subj "/CN=${fullServiceDomain}" -out "${tmpdir}/server.csr" -config "${tmpdir}/csr.conf"
 
 set +e
 # clean-up any previously created CSR for our service. Ignore errors if not present.
-if kubectl delete csr "${csrName}"; then 
+if kubectl delete csr "${csrName}"; then
     echo "WARN: Previous CSR was found and removed."
 fi
 set -e
