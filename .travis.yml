@@ -25,16 +25,13 @@ jobs:
       script: make build-container
     - <<: *e2e-stage
       env:
-        - E2E_KUBERNETES_VERSION=v1.9.0
+        - E2E_KUBERNETES_VERSION=v1.16.0
     - <<: *e2e-stage
       env:
-        - E2E_KUBERNETES_VERSION=v1.10.0
+        - E2E_KUBERNETES_VERSION=v1.17.0
     - <<: *e2e-stage
       env:
-        - E2E_KUBERNETES_VERSION=v1.12.0
-    - <<: *e2e-stage
-      env:
-        - E2E_KUBERNETES_VERSION=v1.13.2
+        - E2E_KUBERNETES_VERSION=v1.18.0
 
 # safelist
 branches:
