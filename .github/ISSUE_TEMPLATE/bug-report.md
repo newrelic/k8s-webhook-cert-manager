@@ -15,7 +15,7 @@ assignees: ''
 ## Expected Behavior
 [NOTE]: # ( Tell us what you expected to happen. )
 
-## [Troubleshooting](https://discuss.newrelic.com/t/troubleshooting-frameworks/108787) or [NR Diag](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/new-relic-diagnostics) results
+## Logs 
 [NOTE]: # ( Provide any other relevant log data. )
 [TIP]:  # ( Scrub logs and diagnostic information for sensitive information )
 
