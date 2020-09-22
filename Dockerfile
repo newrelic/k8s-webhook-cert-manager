@@ -1,7 +1,7 @@
 FROM alpine:3.12.0
 
 # This makes it easy to build tagged images with different `kubectl` versions.
-ARG KUBECTL_VERSION="v1.13.0"
+ARG KUBECTL_VERSION="v1.19.2"
 
 # Fixes https://snyk.io/vuln/SNYK-LINUX-MUSL-458116
 RUN apk upgrade musl
