@@ -9,7 +9,7 @@ This script uses k8s' CertificateSigningRequest API to a generate a
 certificate signed by k8s CA suitable for use with any Kubernetes Mutating Webhook service pod.
 This requires permissions to create and approve CSR. See
 https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster for
-detailed explantion and additional instructions.
+detailed explanation and additional instructions.
 The server key/cert k8s CA cert are stored in a k8s secret.
 usage: ${0} [OPTIONS]
 The following flags are required.
@@ -75,7 +75,7 @@ if [ ! -x "$(command -v openssl)" ]; then
   exit 1
 fi
 
-csrName=${service}.${namespace}
+
 tmpdir=$(mktemp -d)
 echo "creating certs in tmpdir ${tmpdir} "
 
@@ -98,15 +98,21 @@ EOF
 openssl genrsa -out "${tmpdir}/server-key.pem" 2048
 openssl req -new -key "${tmpdir}/server-key.pem" -subj "/CN=${fullServiceDomain}" -out "${tmpdir}/server.csr" -config "${tmpdir}/csr.conf"
 
+csrName=${service}.${namespace}
+echo "creating csr: ${csrName} "
 set +e
+
 # clean-up any previously created CSR for our service. Ignore errors if not present.
-if kubectl delete csr "${csrName}"; then
+if kubectl get csr "${csrName}"; then
+  if kubectl delete csr "${csrName}"; then
     echo "WARN: Previous CSR was found and removed."
+  fi
 fi
+
 set -e
 
 # create server cert/key CSR and send it to k8s api
-cat <<EOF | kubectl create -f -
+cat <<EOF | kubectl create --validate=false -f -
 apiVersion: certificates.k8s.io/v1beta1
 kind: CertificateSigningRequest
 metadata:
@@ -128,6 +134,7 @@ while true; do
       break
   fi
 done
+
 set -e
 
 # approve and fetch the signed certificate
@@ -136,19 +143,19 @@ kubectl certificate approve "${csrName}"
 set +e
 # verify certificate has been signed
 i=1
-while [ "$i" -ne 10 ]
+while [ "$i" -ne 20 ]
 do
-  serverCert=$(kubectl get csr "${csrName}" -o jsonpath='{.status.certificate}')
+  serverCert=$(kubectl get csr/"${csrName}" -o jsonpath='{.status.certificate}')
   if [ "${serverCert}" != '' ]; then
       break
   fi
-  sleep 5
+  sleep 3
   i=$((i + 1))
 done
 
 set -e
 if [ "${serverCert}" = '' ]; then
-  echo "ERROR: After approving csr ${csrName}, the signed certificate did not appear on the resource. Giving up after 10 attempts." >&2
+  echo "ERROR: After approving csr ${csrName}, the signed certificate did not appear on the resource. Giving up after 1 minute." >&2
   exit 1
 fi
 
