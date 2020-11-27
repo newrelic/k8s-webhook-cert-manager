@@ -15,7 +15,7 @@ build-container:
 
 .PHONY: build-container-e2e
 build-container-e2e:
-	docker build -f Dockerfile.e2e --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) . 
+	docker build --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) . 
 
 .PHONY: check-shellcheck
 check-shellcheck:
