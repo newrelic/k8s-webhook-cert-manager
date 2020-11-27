@@ -1,3 +1,4 @@
+# https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -21,12 +22,15 @@ rules:
     resources: ["certificatesigningrequests"]
     verbs: ["create", "get", "delete"]
   - apiGroups: ["certificates.k8s.io"]
-    resources: ["certificatesigningrequests/approval"]
-    verbs: ["update"]
+    resources: 
+      - "certificatesigningrequests/status"
+      - "certificatesigningrequests/approval"
+      - "signers"
+    verbs: ["update", "approve"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["create", "get", "patch"]
-  - apiGroups: [""]
+  - apiGroups: [""] 
     resources: ["configmaps"]
     verbs: ["get"]
 ---
@@ -61,8 +65,9 @@ spec:
       serviceAccountName: e2e-test-cert-manager-service-account
       containers:
       - name: metadata-cert-setup
-        # This is a minimal kubectl image based on Alpine Linux that sings certificates using the k8s extension api server
-        image: newrelic/k8s-webhook-cert-manager:latest
+        # This is a minimal kubectl image based on Alpine Linux that signs certificates using the k8s extension api server
+        # Use the commit hash so we always use the image we built
+        image: newrelic/k8s-webhook-cert-manager:e2e-test
         command: ["./generate_certificate.sh"]
         args:
           - "--service"

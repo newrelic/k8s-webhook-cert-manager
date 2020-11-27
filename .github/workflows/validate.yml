@@ -1,0 +1,44 @@
+name: Lint and test code
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Lint
+        run: echo "linting.."
+  e2e-test:
+    name: E2E test
+    runs-on: ubuntu-latest
+    needs: [lint]
+    strategy:
+      fail-fast: false
+      matrix:
+        k8s_version: ["v1.15.12", "v1.16.15", "v1.17.14", "v1.18.12", "v1.19.4"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short $GITHUB_SHA)"
+      - name: Check outputs
+        run: echo ${{ steps.vars.outputs.sha_short }}
+      - uses: manusa/actions-setup-minikube@v2.0.1
+        with:
+          minikube version: v1.15.1
+          kubernetes version: ${{ matrix.k8s_version }}
+          driver: docker
+      - name: Run e2e test
+        run: |
+          # make minikube use local docker registry
+          eval $(minikube -p minikube docker-env)
+
+          # createa docker image and use it in minikube
+          make e2e-test
+        env:
+          DOCKER_IMAGE_TAG: e2e-test
+          KUBECTL_VERSION: ${{ matrix.k8s_version }}
