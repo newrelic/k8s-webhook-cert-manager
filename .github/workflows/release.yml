@@ -48,15 +48,3 @@ jobs:
             docker tag $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE:latest
             echo "docker push $DOCKER_IMAGE:latest"
           fi
-
-      - uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.COREINT_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.COREINT_AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      
-      - name: Upload manifest to S3
-        run: |
-          aws s3 cp deploy/nri-kube-events.yaml $S3_PATH/integrations/kubernetes/k8s-webhook-cert-manager-$RELEASE_VERSION.yaml"
-          aws s3 cp deploy/nri-kube-events.yaml $S3_PATH/integrations/kubernetes/k8s-webhook-cert-manager-latest.yaml"
-
