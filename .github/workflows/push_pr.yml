@@ -41,4 +41,3 @@ jobs:
           make e2e-test
         env:
           DOCKER_IMAGE_TAG: e2e-test
-          KUBECTL_VERSION: ${{ matrix.k8s_version }}

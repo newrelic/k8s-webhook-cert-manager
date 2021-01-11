@@ -2,6 +2,9 @@
 
 set -e
 
+# Fully qualified name of the CSR object
+csr="certificatesigningrequests.v1beta1.certificates.k8s.io"
+
 usage() {
   cat <<EOF
 Generate certificate suitable for use with any Kubernetes Mutating Webhook.
@@ -103,8 +106,8 @@ echo "creating csr: ${csrName} "
 set +e
 
 # clean-up any previously created CSR for our service. Ignore errors if not present.
-if kubectl get csr "${csrName}"; then
-  if kubectl delete csr "${csrName}"; then
+if kubectl get "${csr}/${csrName}"; then
+  if kubectl delete "${csr}/${csrName}"; then
     echo "WARN: Previous CSR was found and removed."
   fi
 fi
@@ -130,7 +133,7 @@ EOF
 set +e
 # verify CSR has been created
 while true; do
-  if kubectl get csr "${csrName}"; then
+  if kubectl get "${csr}/${csrName}"; then
       break
   fi
 done
@@ -138,14 +141,14 @@ done
 set -e
 
 # approve and fetch the signed certificate
-kubectl certificate approve "${csrName}"
+kubectl certificate approve "${csr}/${csrName}"
 
 set +e
 # verify certificate has been signed
 i=1
 while [ "$i" -ne 20 ]
 do
-  serverCert=$(kubectl get csr/"${csrName}" -o jsonpath='{.status.certificate}')
+  serverCert=$(kubectl get "${csr}/${csrName}" -o jsonpath='{.status.certificate}')
   if [ "${serverCert}" != '' ]; then
       break
   fi
