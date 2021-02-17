@@ -5,39 +5,41 @@ on:
       - prereleased
       - released
 
-env: 
- 
-  DOCKER_IMAGE_NAME: newrelic/k8s-webhook-cert-manager
-  DOCKER_IMAGE_TAG: ${{ github.event.release.tag_name }}
-
 jobs:
   publish:
-    name: Publish
+    name: Release docker images
     runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE_NAME: roobre/k8s-webhook-cert-manager
+      DOCKER_PLATFORMS: "linux/amd64,linux/arm64,linux/arm"
     steps:
       - uses: actions/checkout@v2
 
-      - name: Extract version from release tag
+      - name: Generate docker image version from git tag
         run: |
-          echo "DOCKER_IMAGE_TAG=$(echo $DOCKER_IMAGE_TAG | grep -oE '([0-9.]*[0-9])$')" >> $GITHUB_ENV
+          echo "${{ github.event.release.tag_name }}" | grep -E '^v[0-9.]*[0-9]$'
+          DOCKER_IMAGE_TAG=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
+          echo "$DOCKER_IMAGE_TAG" | grep -E '^[0-9.]*[0-9]$'
+          echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Test for prerelase
-        if: ${{ github.event.release.prerelease }}
+      - if: ${{ github.event.release.prerelease }}
         run: |
           echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG-pre" >> $GITHUB_ENV
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
-          username: ${{ secrets.FSI_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.FSI_DOCKERHUB_TOKEN }}
+          username: roobre # TODO TODO CHANGEME CHANGEME
+          password: ${{ secrets.ROOBRE_TEST_TOKEN }} # TODO TODO CHANGEME CHANGEME
 
-      - name: Build and push
+      - name: Build and push docker image
         run: |
-          make build-container
-          docker push $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG
-      - name: Tag and push latest
+          docker buildx build --push --platform=$DOCKER_PLATFORMS \
+            -t $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG \
+            .
+      - name: Push :latest image
         if: ${{ ! github.event.release.prerelease }}
         run: |
-          docker tag $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG $DOCKER_IMAGE_NAME:latest
-          docker push $DOCKER_IMAGE_NAME:latest
+          docker buildx build --push --platform=$DOCKER_PLATFORMS \
+            -t $DOCKER_IMAGE_NAME:latest \
+            .
