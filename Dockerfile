@@ -4,9 +4,6 @@ FROM alpine:3.13
 ARG KUBECTL_VERSION="v1.13.12"
 
 # Set by docker automatically
-# If building with `docker build`, make sure to set GOOS/GOARCH explicitly when calling make:
-# `make compile GOOS=something GOARCH=something`
-# Otherwise the makefile will not append them to the binary name and docker build wil fail.
 ARG TARGETOS
 ARG TARGETARCH
 
