@@ -11,11 +11,9 @@ RUN apk add --update openssl
 RUN wget https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/$TARGETOS/$TARGETARCH/kubectl \
     && chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
 
-COPY ./generate_certificate.sh /app/generate_certificate.sh
-RUN chmod +x /app/generate_certificate.sh
-
 WORKDIR /app
-
 USER 1000
+
+COPY --chmod=755 ./generate_certificate.sh /app/generate_certificate.sh
 
 CMD ["./generate_certificate.sh"]
