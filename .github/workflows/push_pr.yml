@@ -27,4 +27,4 @@ jobs:
           eval $(minikube -p minikube docker-env)
 
           # createa docker image and use it in minikube
-          make DOCKER_IMAGE_TAG=e2e-test e2e-test
+          DOCKER_IMAGE_TAG=e2e-test make e2e-test
