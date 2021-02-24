@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 2 # Too many jobs causes `apk add` to fail (rate limit?)
       matrix:
         k8s-version: [ "v1.15.12", "v1.16.15", "v1.17.17", "v1.18.16", "v1.19.8", "v1.20.4" ]
     env:
