@@ -23,6 +23,8 @@ The following flags are required.
 The following flags are optional.
     --webhook-kind     Webhook kind, either MutatingWebhookConfiguration or
                        ValidatingWebhookConfiguration (defaults to MutatingWebhookConfiguration)
+    --webhook-number   Specify the number of webhook 
+
 EOF
   exit 1
 }
@@ -47,6 +49,10 @@ while [ $# -gt 0 ]; do
           ;;
       --webhook-kind)
           kind="$2"
+          shift
+          ;;
+      --webhook-number)
+          [[ ! -z "$2" ]] && number="$2" || number="1"
           shift
           ;;
       *)
@@ -180,9 +186,11 @@ set +e
 # the job will not end until the webhook is patched.
 while true; do
   echo "INFO: Trying to patch webhook adding the caBundle."
-  if kubectl patch "${kind:-mutatingwebhookconfiguration}" "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
-      break
-  fi
-  echo "INFO: webhook not patched. Retrying in 5s..."
-  sleep 5
+  for ((i=0; i<${number}; ++i )); do
+    if kubectl patch "${kind:-mutatingwebhookconfiguration}" "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/${i}/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
+        break
+    fi
+    echo "INFO: webhook not patched. Retrying in 5s..."
+    sleep 5
+  done
 done
