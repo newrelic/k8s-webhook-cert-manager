@@ -8,7 +8,7 @@ ARG TARGETOS
 ARG TARGETARCH
 
 RUN apk --upgrade --no-cache add openssl && \
-    wget "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/${TARGETOS}/${TARGETARCH}/kubectl" && \
+    wget --proxy off "https://storage.googleapis.com/kubernetes-release/release/v1.13.12/bin/linux/amd64/kubectl" && \
     chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
 
 WORKDIR /app

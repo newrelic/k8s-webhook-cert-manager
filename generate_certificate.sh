@@ -52,7 +52,7 @@ while [ $# -gt 0 ]; do
           shift
           ;;
       --webhook-number)
-          [[ ! -z "$2" ]] && number="$2" || number="1"
+          number="$2"
           shift
           ;;
       *)
@@ -186,7 +186,7 @@ set +e
 # the job will not end until the webhook is patched.
 while true; do
   echo "INFO: Trying to patch webhook adding the caBundle."
-  for ((i=0; i<${number}; ++i )); do
+  for i in seq 0 $((${number:-1}-1)); do
     if kubectl patch "${kind:-mutatingwebhookconfiguration}" "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/${i}/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
         break
     fi
