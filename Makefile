@@ -1,4 +1,4 @@
-DOCKER_IMAGE_NAME ?= edoz77/k8s-webhook-cert-manager
+DOCKER_IMAGE_NAME ?= newrelic/k8s-webhook-cert-manager
 DOCKER_IMAGE_TAG ?= latest
 KUBECTL_VERSION ?= v1.13.12
 
@@ -11,11 +11,11 @@ build: lint build-container
 
 .PHONY: build-container
 build-container:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
+	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
 .PHONY: build-container-e2e
 build-container-e2e:
-	DOCKER_BUILDKIT=1 docker build --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) . 
+	docker build --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) . 
 
 .PHONY: check-shellcheck
 check-shellcheck:

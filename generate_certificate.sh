@@ -23,7 +23,7 @@ The following flags are required.
 The following flags are optional.
     --webhook-kind     Webhook kind, either MutatingWebhookConfiguration or
                        ValidatingWebhookConfiguration (defaults to MutatingWebhookConfiguration)
-    --webhook-number   Specify the number of webhook 
+    --webhook-number   Specify the number of webhook (defaults to 1)
 
 EOF
   exit 1

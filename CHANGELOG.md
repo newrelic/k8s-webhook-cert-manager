@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.5.0
+- Add the `--webhook-number` option to specified how many webhook to certify. Defaults to
+  1.
+
 ## 1.4.0
 - Support multiarch images
 
@@ -24,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the error message.
 - Add the `--webhook-kind` option to specified between
   MutatingWebhookConfiguration or ValidatingWebhookConfiguration. Defaults to
-  MutatingWebhookConfiguration
+  MutatingWebhookConfiguration.
 
 ## 1.2.0
 
