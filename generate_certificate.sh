@@ -23,6 +23,8 @@ The following flags are required.
 The following flags are optional.
     --webhook-kind     Webhook kind, either MutatingWebhookConfiguration or
                        ValidatingWebhookConfiguration (defaults to MutatingWebhookConfiguration)
+    --webhook-number   Specify the number of webhook (defaults to 1)
+
 EOF
   exit 1
 }
@@ -47,6 +49,10 @@ while [ $# -gt 0 ]; do
           ;;
       --webhook-kind)
           kind="$2"
+          shift
+          ;;
+      --webhook-number)
+          number="$2"
           shift
           ;;
       *)
@@ -178,11 +184,19 @@ set +e
 # a default value of empty string like Kubernetes. Instead, it doesn't create the caBundle key.
 # As the webhook is not created yet (the process should be done manually right after this job is created),
 # the job will not end until the webhook is patched.
+count=0
 while true; do
   echo "INFO: Trying to patch webhook adding the caBundle."
-  if kubectl patch "${kind:-mutatingwebhookconfiguration}" "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/0/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
-      break
-  fi
-  echo "INFO: webhook not patched. Retrying in 5s..."
-  sleep 5
+  for i in seq 0 $((${number:-1}-1)); do
+    if kubectl patch "${kind:-mutatingwebhookconfiguration}" "${webhook}" --type='json' -p "[{'op': 'add', 'path': '/webhooks/${i}/clientConfig/caBundle', 'value':'${caBundle}'}]"; then
+      count=$((count + 1))
+    fi
+
+    if [ "${count}" = "${number:-1}" ]; then
+      break 2
+    fi
+
+    echo "INFO: webhook not patched. Retrying in 5s..."
+    sleep 5
+  done
 done
