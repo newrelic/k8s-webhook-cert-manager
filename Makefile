@@ -1,7 +1,6 @@
-DOCKER_IMAGE_NAME ?= newrelic/k8s-webhook-cert-manager
+DOCKER_IMAGE_NAME ?= civo/k8s-webhook-cert-manager
 DOCKER_IMAGE_TAG ?= latest
-KUBECTL_VERSION ?= v1.13.12
-
+KUBECTL_VERSION ?= v1.21.1
 
 .PHONY: all
 all: build

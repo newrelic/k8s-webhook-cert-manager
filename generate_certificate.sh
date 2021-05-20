@@ -99,7 +99,7 @@ DNS.3 = ${fullServiceDomain}
 EOF
 
 openssl genrsa -out "${tmpdir}/server-key.pem" 2048
-openssl req -new -key "${tmpdir}/server-key.pem" -subj "/CN=${fullServiceDomain}" -out "${tmpdir}/server.csr" -config "${tmpdir}/csr.conf"
+openssl req -new -key "${tmpdir}/server-key.pem" -subj "/O=system:nodes/CN=system:node:${fullServiceDomain}" -out "${tmpdir}/server.csr" -config "${tmpdir}/csr.conf"
 
 csrName=${service}.${namespace}
 echo "creating csr: ${csrName} "
@@ -116,11 +116,12 @@ set -e
 
 # create server cert/key CSR and send it to k8s api
 cat <<EOF | kubectl create --validate=false -f -
-apiVersion: certificates.k8s.io/v1beta1
+apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
   name: ${csrName}
 spec:
+  signerName: kubernetes.io/kubelet-serving
   groups:
   - system:authenticated
   request: $(base64 < "${tmpdir}/server.csr" | tr -d '\n')
@@ -171,7 +172,7 @@ kubectl create secret tls "${secret}" \
       --dry-run -o yaml |
   kubectl -n "${namespace}" apply -f -
 
-caBundle=$(base64 < /run/secrets/kubernetes.io/serviceaccount/ca.crt  | tr -d '\n')
+caBundle=$(base64 < ${tmpdir}/server-cert.pem  | tr -d '\n')
 
 set +e
 # Patch the webhook adding the caBundle. It uses an `add` operation to avoid errors in OpenShift because it doesn't set
